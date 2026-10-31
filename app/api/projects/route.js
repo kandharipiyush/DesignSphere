@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { initialRawProjects } from "@/app/initialProjects";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // In-memory cache for speed and resilience
 let memoryCache = null;
 let lastFetchTime = 0;
-const CACHE_DURATION_MS = 20 * 1000;
+const CACHE_DURATION_MS = 5 * 1000;
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -15,7 +18,9 @@ export async function GET(request) {
   if (!forceFresh && memoryCache && now - lastFetchTime < CACHE_DURATION_MS) {
     return NextResponse.json(memoryCache, {
       headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
         "X-Data-Source": "in-memory-cache",
       },
     });
@@ -51,11 +56,9 @@ export async function GET(request) {
           student2 = rawMatch.student2;
         }
 
-        let virtualLab = row.virtual_lab || "";
-        // If rawMatch has the complete Breakscale #k= decryption key, preserve it
-        if (rawMatch?.virtualLab && rawMatch.virtualLab.includes("#k=") && !virtualLab.includes("#k=")) {
-          virtualLab = rawMatch.virtualLab;
-        }
+        const virtualLab = (rawMatch?.virtualLab && rawMatch.virtualLab.trim())
+          ? rawMatch.virtualLab
+          : (row.virtual_lab || "");
 
         const architecture = (rawMatch?.architecture && (rawMatch.architecture.startsWith("/architecture/") || rawMatch.architecture.startsWith("/Architcture diagram/")))
           ? rawMatch.architecture
@@ -108,7 +111,9 @@ export async function GET(request) {
 
   return NextResponse.json(finalProjects, {
     headers: {
-      "Cache-Control": "no-cache, no-store, must-revalidate",
+      "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+      "Pragma": "no-cache",
+      "Expires": "0",
       "X-Data-Source": finalProjects.length === 21 ? "final-sheet-data" : "supabase-live",
     },
   });

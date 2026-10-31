@@ -260,8 +260,13 @@ export default function Home() {
   const syncWithSheet = async (forceFresh = false) => {
     try {
       setIsRefreshing(true);
-      const url = forceFresh ? "/api/projects?fresh=true" : "/api/projects";
-      const response = await fetch(url);
+      const url = forceFresh
+        ? `/api/projects?fresh=true&_t=${Date.now()}`
+        : `/api/projects?_t=${Date.now()}`;
+      const response = await fetch(url, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
 
       if (!response.ok) {
         throw new Error("Unable to sync latest projects.");
