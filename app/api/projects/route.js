@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { initialRawProjects } from "@/app/initialProjects";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
 // In-memory cache for speed and resilience
 let memoryCache = null;
 let lastFetchTime = 0;
